@@ -16,9 +16,9 @@ if tmux has-session -t "$SESSION" 2>/dev/null; then
 fi
 
 # ── Stop Camofox Docker container ──
-if docker ps --format '{{.Names}}' | grep -q "^camofox$"; then
+if sudo docker ps --format '{{.Names}}' | grep -q "^camofox$"; then
     log "Stopping Camofox Docker container..."
-    docker stop camofox 2>/dev/null || true
+    sudo docker stop camofox 2>/dev/null || true
 fi
 
 # ── Kill remaining processes ──

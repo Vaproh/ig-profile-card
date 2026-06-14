@@ -34,11 +34,11 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # ── Camofox Docker ──
-if docker ps -a --format '{{.Names}}' | grep -q "^camofox$"; then
+if sudo docker ps -a --format '{{.Names}}' | grep -q "^camofox$"; then
     log "Camofox Docker container already exists"
 else
-    log "Pulling Camofox Docker image..."
-    docker pull nowsecure/camofox:latest
+    log "Pulling Camofox Docker image (requires sudo)..."
+    sudo docker pull nowsecure/camofox:latest
     log "Camofox image pulled"
 fi
 

@@ -43,7 +43,7 @@ tmux new-session -d -s "$SESSION" -n "api" "
 # Create Camofox window
 tmux new-window -t "$SESSION" -n "camofox" "
     echo 'Starting Camofox browser via Docker...'
-    docker run --rm --name camofox -p 9377:9377 nowsecure/camofox:latest 2>&1 | tee -a $CAMOFOX_LOG
+    sudo docker run --rm --name camofox -p 9377:9377 nowsecure/camofox:latest 2>&1 | tee -a $CAMOFOX_LOG
 "
 
 sleep 1
