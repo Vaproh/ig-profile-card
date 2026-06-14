@@ -62,10 +62,10 @@ tmux send-keys -t "$SESSION:api" "cd $SCRIPT_DIR && source $VENV_DIR/bin/activat
 # Build Camofox start command
 if [ "$PROXY_ENABLED" = "true" ] && [ -n "$PROXY_SERVER" ]; then
     log "Starting Camofox with proxy: $PROXY_SERVER"
-    CAMOFOX_CMD="cd $CAMOFOX_DIR && PROXY_STRATEGY=backconnect PROXY_BACKCONNECT_HOST=$PROXY_SERVER PROXY_BACKCONNECT_PORT=823 PROXY_USERNAME=$PROXY_USERNAME PROXY_PASSWORD=$PROXY_PASSWORD npm start"
+    CAMOFOX_CMD="cd $CAMOFOX_DIR && PROXY_STRATEGY=backconnect PROXY_BACKCONNECT_HOST=$PROXY_SERVER PROXY_BACKCONNECT_PORT=823 PROXY_USERNAME=$PROXY_USERNAME PROXY_PASSWORD=$PROXY_PASSWORD CAMOFOX_PORT=9377 npm start"
 else
     log "Starting Camofox without proxy"
-    CAMOFOX_CMD="cd $CAMOFOX_DIR && npm start"
+    CAMOFOX_CMD="cd $CAMOFOX_DIR && CAMOFOX_PORT=9377 npm start"
 fi
 
 # Start Camofox window
