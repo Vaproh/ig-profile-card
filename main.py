@@ -153,6 +153,13 @@ async def screenshot(request: Request, username: Annotated[str, Path(min_length=
                 logger.info(f"Profile unavailable: {username}")
                 raise HTTPException(status_code=404, detail="profile isn't available")
 
+            cookies_ref = client.find_cookies_button_ref(snapshot)
+            if cookies_ref:
+                logger.debug(f"Dismissing cookies consent for: {username}")
+                await client.click(tab_id, cookies_ref)
+                await asyncio.sleep(settings.overlay_dismiss_wait)
+                snapshot = await client.get_snapshot(tab_id)
+
             if client.has_close_button(snapshot):
                 logger.debug(f"Dismissing login overlay for: {username}")
                 await client.click(tab_id, "e1")

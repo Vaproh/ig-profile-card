@@ -119,6 +119,32 @@ class CamofoxClient:
         return 'button "Close" [e1]' in snapshot
 
     @staticmethod
+    def has_cookies_consent(snapshot: str) -> bool:
+        cookies_patterns = [
+            "button \"Accept all\"",
+            "button \"Accept cookies\"",
+            "button \"Accept All\"",
+            "button \"Rejeter tout\"",
+            "button \"Deny all\"",
+        ]
+        return any(pattern in snapshot for pattern in cookies_patterns)
+
+    def find_cookies_button_ref(self, snapshot: str) -> Optional[str]:
+        import re
+        patterns = [
+            r'button "Accept all" \[(e\d+)\]',
+            r'button "Accept cookies" \[(e\d+)\]',
+            r'button "Accept All" \[(e\d+)\]',
+            r'button "Deny all" \[(e\d+)\]',
+            r'button "Rejeter tout" \[(e\d+)\]',
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, snapshot)
+            if match:
+                return match.group(1)
+        return None
+
+    @staticmethod
     def is_profile_unavailable(snapshot: str) -> bool:
         unavailable_phrases = [
             "Sorry, this page isn't available",
