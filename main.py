@@ -1,9 +1,13 @@
 import logging
+import os
 import re
 import time
 import uuid
 from contextlib import asynccontextmanager
 from typing import Annotated
+
+from dotenv import load_dotenv
+load_dotenv()
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request, Response, Path
@@ -91,6 +95,10 @@ def get_camofox_client() -> CamofoxClient:
         user_id=settings.camofox_user_id,
         timeout=settings.camofox_timeout,
         connect_timeout=settings.camofox_connect_timeout,
+        proxy_enabled=settings.proxy_enabled,
+        proxy_server=settings.proxy_server,
+        proxy_username=settings.proxy_username,
+        proxy_password=settings.proxy_password,
     )
 
 
