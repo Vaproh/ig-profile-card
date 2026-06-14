@@ -34,9 +34,10 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # ── Clone Camofox repo if not present ──
-if [ ! -d "$SCRIPT_DIR/camofox-browser" ]; then
-    log "Cloning Camofox browser repo..."
-    git clone https://github.com/jo-inc/camofox-browser.git "$SCRIPT_DIR/camofox-browser"
+CAMOFOX_DIR="/opt/camofox"
+if [ ! -d "$CAMOFOX_DIR" ]; then
+    log "Cloning Camofox browser repo to $CAMOFOX_DIR..."
+    sudo git clone https://github.com/jo-inc/camofox-browser.git "$CAMOFOX_DIR"
 fi
 
 # ── Build Docker image (if not already built) ──
@@ -44,7 +45,7 @@ if sudo docker images camofox-browser --format "{{.Repository}}" 2>/dev/null | g
     log "Camofox Docker image already exists"
 else
     log "Building Camofox Docker image (requires sudo, ~1.8GB)..."
-    cd "$SCRIPT_DIR/camofox-browser"
+    cd "$CAMOFOX_DIR"
     sudo docker build --no-cache -t camofox-browser .
     log "Camofox image built"
 fi
