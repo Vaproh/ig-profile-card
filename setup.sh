@@ -44,8 +44,10 @@ fi
 if sudo docker images camofox-browser --format "{{.Repository}}" 2>/dev/null | grep -q "^camofox-browser$"; then
     log "Camofox Docker image already exists"
 else
-    log "Building Camofox Docker image (requires sudo, ~1.8GB)..."
+    log "Downloading Camoufox binary..."
     cd "$CAMOFOX_DIR"
+    make fetch
+    log "Building Camofox Docker image (requires sudo, ~1.8GB)..."
     sudo docker build --no-cache -t camofox-browser .
     log "Camofox image built"
 fi
