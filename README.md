@@ -1,206 +1,134 @@
 # Instagram Profile Screenshot Service
 
-A lightweight FastAPI backend that captures cropped screenshots of Instagram profiles using the Camofox browser engine.
+Capture cropped screenshots of Instagram profiles via a FastAPI backend using Camofox anti-detect browser.
 
 ## Features
 
-- **Screenshot capture** via Camofox anti-detect browser
-- **Profile header cropping** (PFP, username, stats, bio)
-- **Rate limiting** to prevent abuse
-- **Request ID tracking** for debugging and tracing
-- **Structured logging** with process time metrics
-- **Health checks** (liveness + readiness probes)
-- **Graceful shutdown** handling
-- **Retry logic** for transient failures
-- **Input validation** for Instagram usernames
+- Cropped profile header screenshots (PFP, username, stats, bio)
+- Raw screenshot option (`?crop=false`)
+- Auto-dismisses cookie consent and login overlays
+- Detects deactivated/non-existent profiles → returns 404
+- Rate limiting (30 req/min per IP)
+- Health checks (liveness + readiness)
+- Request ID tracking for debugging
+- Structured logging
 
-## How It Works
-
-```
-Client Request
-    │
-    ▼
-POST /tabs → Create Camofox tab
-    │
-    ▼
-POST /tabs/{id}/navigate → Go to instagram.com/{username}
-    │
-    ▼
-sleep 5s → Wait for page to render
-    │
-    ▼
-GET /tabs/{id}/snapshot → Check page content
-    │
-    ├─ If "profile isn't available" → Return 404
-    │
-    ├─ If button "Close" [e1] → Click to dismiss login overlay
-    │       │
-    │       ▼
-    │   sleep 2s → Wait for animation
-    │
-    ▼
-GET /tabs/{id}/screenshot → Capture raw PNG
-    │
-    ▼
-Crop to profile header (PIL)
-    │
-    ▼
-DELETE /tabs/{id} → Cleanup
-    │
-    ▼
-Return cropped PNG to client
-```
-
-## Prerequisites
-
-- Python 3.10+
-- Camofox browser running at `http://localhost:9377`
-
-## Setup
+## Quick Start
 
 ```bash
-# Enter project directory
-cd ig-screenshot
+# Clone
+git clone https://github.com/Vaproh/instagram-profile-screenshot-service.git
+cd instagram-profile-screenshot-service/ig-screenshot
 
-# Create virtual environment
+# Setup
 python3 -m venv .venv
 source .venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Configure environment
 cp .env.example .env
-# Edit .env if needed
+
+# Run
+uvicorn main:app --host 0.0.0.0 --port 8080
 ```
 
-## Running
+## API
+
+### `GET /screenshot/{username}`
+
+**Parameters:**
+- `username` (path) - Instagram username
+- `crop` (query, default: `true`) - `false` for raw 1280x720 screenshot
+
+**Responses:**
+
+| Status | Body |
+|--------|------|
+| 200 | PNG image |
+| 400 | `{"detail": "Invalid username"}` |
+| 404 | `{"detail": "profile isn't available"}` |
+| 429 | `{"error": "Rate limit exceeded"}` |
+| 503 | `{"detail": "Camofox browser not available"}` |
+| 504 | `{"detail": "Page load timeout"}` |
+
+**Examples:**
+```bash
+# Cropped (default)
+curl -o profile.png http://localhost:8080/screenshot/akiraa.init
+
+# Raw full page
+curl -o raw.png "http://localhost:8080/screenshot/akiraa.init?crop=false"
+```
+
+### `GET /health`
+
+Returns combined health status with Camofox availability.
 
 ```bash
-# Activate virtual environment
-source .venv/bin/activate
-
-# Start server
-uvicorn main:app --host 0.0.0.0 --port 8080
-
-# Or run directly
-python main.py
+curl http://localhost:8080/health
+# {"status": "ok", "camofox": true}
 ```
+
+### `GET /health/live`
+
+Liveness probe — returns 200 if service is running.
+
+### `GET /health/ready`
+
+Readiness probe — returns 503 if Camofox is unavailable.
 
 ## Configuration
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CAMOFOX_URL` | `http://localhost:9377` | Camofox browser REST API URL |
-| `CAMOFOX_USER_ID` | `ig-screenshot-service` | User ID label for Camofox sessions |
-| `CAMOFOX_TIMEOUT` | `15.0` | Request timeout in seconds |
-| `CAMOFOX_CONNECT_TIMEOUT` | `2.0` | Connection timeout in seconds |
-| `PAGE_LOAD_WAIT` | `3.0` | Seconds to wait after navigation |
-| `OVERLAY_DISMISS_WAIT` | `1.0` | Seconds to wait after clicking overlay |
-| `LOG_LEVEL` | `INFO` | Logging level |
-| `RATE_LIMIT_PER_MINUTE` | `30` | Rate limit per IP |
-| `HOST` | `0.0.0.0` | Server host |
-| `PORT` | `8080` | Server port |
-| `CROP_LEFT` | `610` | Left crop coordinate (for 1280x720) |
-| `CROP_TOP` | `65` | Top crop coordinate |
-| `CROP_RIGHT` | `1210` | Right crop coordinate |
-| `CROP_BOTTOM` | `270` | Bottom crop coordinate |
+| `CAMOFOX_URL` | `http://localhost:9377` | Camofox browser URL |
+| `CAMOFOX_USER_ID` | `ig-screenshot-service` | Session label |
+| `CAMOFOX_TIMEOUT` | `15.0` | Request timeout (s) |
+| `PAGE_LOAD_WAIT` | `3.0` | Wait after navigate (s) |
+| `OVERLAY_DISMISS_WAIT` | `1.0` | Wait after clicking overlay (s) |
+| `RATE_LIMIT_PER_MINUTE` | `30` | Requests per IP per minute |
+| `CROP_LEFT` | `610` | Crop left coordinate |
+| `CROP_TOP` | `65` | Crop top coordinate |
+| `CROP_RIGHT` | `1210` | Crop right coordinate |
+| `CROP_BOTTOM` | `270` | Crop bottom coordinate |
 
-## API Endpoints
+## Edge Cases
 
-### Health Checks
+| Case | Detection | Response |
+|------|----------|----------|
+| Deactivated profile | Snapshot: "Profile isn't available" | 404 |
+| Non-existent profile | Snapshot: "This page isn't available" | 404 |
+| Cookie consent popup | Auto-detected | Dismissed automatically |
+| Login overlay | Auto-detected | Dismissed automatically |
+| Camofox offline | Connection refused | 503 |
+| Timeout | 15s exceeded | 504 |
+| Rate limited | Per-IP limit | 429 |
 
-#### `GET /health`
+**Overlay priority:** Close → Decline cookies → Accept cookies → Accept all
 
-Combined health status.
+## Workflow
 
-```json
-{
-  "status": "ok",
-  "camofox": true
-}
 ```
-
-#### `GET /health/live`
-
-Liveness probe — always returns 200 if service is running.
-
-```json
-{"status": "ok"}
-```
-
-#### `GET /health/ready`
-
-Readiness probe — returns 503 if Camofox is unavailable.
-
-```json
-{
-  "status": "ok",
-  "camofox": true
-}
-```
-
-### Screenshot
-
-#### `GET /screenshot/{username}`
-
-Capture a screenshot of an Instagram profile (cropped or raw).
-
-**Parameters:**
-- `username` (path): Instagram username (1-30 characters, alphanumeric with `.` `_`)
-- `crop` (query, optional): Whether to crop to profile header (default: `true`). Set to `false` for full-page screenshot.
-
-**Responses:**
-
-| Status | Description | Body |
-|--------|-------------|------|
-| 200 | Success | PNG image (cropped or raw depending on `crop` param) |
-| 400 | Invalid username | `{"detail": "Invalid username"}` |
-| 404 | Profile unavailable/deactivated | `{"detail": "profile isn't available"}` |
-| 429 | Rate limit exceeded | `{"error": "Rate limit exceeded"}` |
-| 503 | Camofox not running | `{"detail": "Camofox browser not available"}` |
-| 504 | Page load timeout | `{"detail": "Page load timeout"}` |
-
-**Headers in response:**
-- `X-Request-ID`: Unique request identifier for tracing
-- `X-Process-Time`: Request processing time (e.g., `3.421s`)
-
-## Testing
-
-```bash
-# Health check
-curl http://localhost:8080/health
-
-# Liveness probe
-curl http://localhost:8080/health/live
-
-# Readiness probe
-curl http://localhost:8080/health/ready
-
-# Screenshot an active profile (cropped, default)
-curl -o test.png http://localhost:8080/screenshot/akiraa.init
-
-# Screenshot with raw full page (no crop)
-curl -o test_raw.png "http://localhost:8080/screenshot/akiraa.init?crop=false"
-
-# Test deactivated profile (returns 404)
-curl http://localhost:8080/screenshot/1lazyxan
-
-# With request ID tracing
-curl -H "X-Request-ID: my-test-123" http://localhost:8080/health
+POST /tabs → Create tab
+POST /tabs/{id}/navigate → Navigate to instagram.com/{username}
+sleep 3s → Wait for page load
+GET /tabs/{id}/snapshot → Check for overlays / errors
+  └─ If cookie/login overlay → Click → sleep 1s → recheck
+  └─ If unavailable → return 404
+GET /tabs/{id}/screenshot → Capture PNG
+DELETE /tabs/{id} → Cleanup tab
+Return image to client
 ```
 
 ## Project Structure
 
 ```
 ig-screenshot/
-├── main.py          # FastAPI app, routes, middleware
-├── camofox.py       # Camofox REST API client with retries
-├── cropper.py       # PIL-based image cropping
-├── config.py        # Pydantic settings configuration
-├── requirements.txt # Python dependencies
-├── .env.example     # Configuration template
-└── README.md        # This file
+├── main.py          # FastAPI app, routes
+├── camofox.py      # Browser client, overlay detection
+├── cropper.py      # PIL image cropping
+├── config.py       # Pydantic settings
+├── requirements.txt
+├── .env.example
+└── README.md
 ```
 
 ## Production Deployment
@@ -216,7 +144,7 @@ COPY . .
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
 ```
 
-### Systemd Service
+### Systemd
 
 ```ini
 [Unit]
@@ -234,51 +162,18 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
-### Reverse Proxy (nginx)
+### nginx
 
 ```nginx
-server {
-    listen 443 ssl;
-    server_name screenshots.example.com;
-
-    location / {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Request-ID $request_id;
-    }
+location / {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Request-ID $request_id;
 }
 ```
 
-## Error Handling
+## Requirements
 
-| Edge Case | Detection | Output |
-|-----------|-----------|--------|
-| Profile deactivated | Snapshot contains "Profile isn't available" | `404 {"detail":"profile isn't available"}` |
-| Profile unavailable | Snapshot contains "Sorry, this page isn't available" | `404 {"detail":"profile isn't available"}` |
-| Non-existent profile | Snapshot contains "This page isn't available", "Page Not Found", "no longer with us" | `404 {"detail":"profile isn't available"}` |
-| Camofox not running | Connection refused | `503 {"detail":"Camofox browser not available"}` |
-| Page load timeout | 15s timeout exceeded | `504 {"detail":"Page load timeout"}` |
-| Rate limit exceeded | Per-IP limit reached | `429 {"error": "Rate limit exceeded"}` |
-| Cookie consent popup | Snapshot contains "Allow all cookies", "Decline optional cookies" | Auto-dismissed, screenshot continues |
-| Login overlay | Snapshot contains "Close" button | Auto-dismissed, screenshot continues |
-| Invalid username | Validation fails | `400 {"detail": "Invalid username"}` |
-
-**Overlay handling priority:** Close → Decline cookies → Accept cookies → Accept all
-
-All tabs are cleaned up via context manager even on errors.
-- **Concurrent requests**: Each request gets its own isolated tab
-
-## Monitoring
-
-The service exposes several metrics useful for monitoring:
-
-1. **Health endpoints** for Kubernetes probes
-2. **X-Request-ID** header for request tracing
-3. **X-Process-Time** header for latency monitoring
-4. **Structured JSON logs** for log aggregation
-
-Example log entry:
-```
-2026-06-14 19:30:00 - main - INFO - abc-123 | GET /screenshot/akiraa.init | 200 | 3.421s
-```
+- Python 3.10+
+- Camofox browser at `http://localhost:9377`
