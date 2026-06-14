@@ -252,11 +252,21 @@ server {
 
 ## Error Handling
 
-- **Camofox connection error**: Returns 503 — service gracefully handles when Camofox is not running
-- **Navigation timeout (15s)**: Returns 504 with retry logic for transient failures
-- **Profile deactivated**: Returns 404 — detected via accessibility snapshot before screenshot
-- **Rate limiting**: Returns 429 — configurable per-IP limits
-- **Tab cleanup**: Always executed via context manager, even on errors
+| Edge Case | Detection | Output |
+|-----------|-----------|--------|
+| Profile deactivated | Snapshot contains "Profile isn't available" | `404 {"detail":"profile isn't available"}` |
+| Profile unavailable | Snapshot contains "Sorry, this page isn't available" | `404 {"detail":"profile isn't available"}` |
+| Non-existent profile | Snapshot contains "This page isn't available", "Page Not Found", "no longer with us" | `404 {"detail":"profile isn't available"}` |
+| Camofox not running | Connection refused | `503 {"detail":"Camofox browser not available"}` |
+| Page load timeout | 15s timeout exceeded | `504 {"detail":"Page load timeout"}` |
+| Rate limit exceeded | Per-IP limit reached | `429 {"error": "Rate limit exceeded"}` |
+| Cookie consent popup | Snapshot contains "Allow all cookies", "Decline optional cookies" | Auto-dismissed, screenshot continues |
+| Login overlay | Snapshot contains "Close" button | Auto-dismissed, screenshot continues |
+| Invalid username | Validation fails | `400 {"detail": "Invalid username"}` |
+
+**Overlay handling priority:** Close → Decline cookies → Accept cookies → Accept all
+
+All tabs are cleaned up via context manager even on errors.
 - **Concurrent requests**: Each request gets its own isolated tab
 
 ## Monitoring
