@@ -68,22 +68,14 @@ class CamofoxClient:
 
     async def navigate(self, tab_id: str, url: str) -> None:
         logger.debug(f"Navigating tab {tab_id} to {url}")
-
-        payload = {
-            "url": url,
-            "userId": self.user_id,
-            "viewport": {"width": 1280, "height": 720},
-        }
-
-        if self.proxy_enabled and self.proxy_server:
-            proxy_url = f"http://{self.proxy_username}:{self.proxy_password}@{self.proxy_server}" if self.proxy_username else f"http://{self.proxy_server}"
-            payload["proxy"] = {"server": proxy_url}
-            logger.debug(f"Using proxy: {self.proxy_server}")
-
         await self._request(
             "POST",
             f"/tabs/{tab_id}/navigate",
-            json=payload,
+            json={
+                "url": url,
+                "userId": self.user_id,
+                "viewport": {"width": 1280, "height": 720},
+            },
         )
 
     async def get_snapshot(self, tab_id: str) -> str:

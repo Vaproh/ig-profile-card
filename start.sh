@@ -52,11 +52,29 @@ tmux new-session -d -s "$SESSION" -n "api" "
     uvicorn main:app --host 0.0.0.0 --port 8080 2>&1 | tee -a $API_LOG
 "
 
-# Create Camofox window
-tmux new-window -t "$SESSION" -n "camofox" "
-    cd $CAMOFOX_DIR
-    npm start 2>&1 | tee -a $CAMOFOX_LOG
-"
+# Create Camofox window with proxy env vars if enabled
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    source "$SCRIPT_DIR/.env"
+fi
+
+if [ "$PROXY_ENABLED" = "true" ] && [ -n "$PROXY_SERVER" ]; then
+    log "Starting Camofox with proxy: $PROXY_SERVER"
+    tmux new-window -t "$SESSION" -n "camofox" "
+        cd $CAMOFOX_DIR
+        PROXY_STRATEGY=backconnect \
+        PROXY_BACKCONNECT_HOST=$PROXY_SERVER \
+        PROXY_BACKCONNECT_PORT=7000 \
+        PROXY_USERNAME=$PROXY_USERNAME \
+        PROXY_PASSWORD=$PROXY_PASSWORD \
+        npm start 2>&1 | tee -a $CAMOFOX_LOG
+    "
+else
+    log "Starting Camofox without proxy"
+    tmux new-window -t "$SESSION" -n "camofox" "
+        cd $CAMOFOX_DIR
+        npm start 2>&1 | tee -a $CAMOFOX_LOG
+    "
+fi
 
 sleep 1
 
