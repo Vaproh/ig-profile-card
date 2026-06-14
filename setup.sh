@@ -33,13 +33,20 @@ if ! command -v docker &> /dev/null; then
     warn "Docker not found. Please install Docker first."
 fi
 
-# ── Camofox Docker ──
-if sudo docker ps -a --format '{{.Names}}' | grep -q "^camofox$"; then
-    log "Camofox Docker container already exists"
+# ── Clone Camofox repo if not present ──
+if [ ! -d "$SCRIPT_DIR/camofox-browser" ]; then
+    log "Cloning Camofox browser repo..."
+    git clone https://github.com/jo-inc/camofox-browser.git "$SCRIPT_DIR/camofox-browser"
+fi
+
+# ── Build Docker image (if not already built) ──
+if sudo docker images camofox-browser --format "{{.Repository}}" 2>/dev/null | grep -q "^camofox-browser$"; then
+    log "Camofox Docker image already exists"
 else
-    log "Pulling Camofox Docker image (requires sudo)..."
-    sudo docker pull nowsecure/camofox:latest
-    log "Camofox image pulled"
+    log "Building Camofox Docker image (requires sudo, ~1.8GB)..."
+    cd "$SCRIPT_DIR/camofox-browser"
+    sudo docker build --no-cache -t camofox-browser .
+    log "Camofox image built"
 fi
 
 # ── Data directories ──
