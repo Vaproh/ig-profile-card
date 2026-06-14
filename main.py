@@ -172,7 +172,7 @@ async def screenshot(
 
                 break
 
-            await asyncio.sleep(2)
+            await asyncio.sleep(1)
 
             screenshot_bytes = await client.get_screenshot(tab_id)
 

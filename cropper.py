@@ -12,7 +12,7 @@ def crop_profile_header(
     ref_height: int = 720,
     left: int = 490,
     top: int = 65,
-    right: int = 960,
+    right: int = 1100,
     bottom: int = 270,
 ) -> Image.Image:
     """
@@ -22,9 +22,7 @@ def crop_profile_header(
     w, h = img.size
 
     if w < left or h < top:
-        logger.warning(
-            f"Image too small ({w}x{h}) for crop region, returning original"
-        )
+        logger.warning(f"Image too small ({w}x{h}) for crop region, returning original")
         return img
 
     scale_x = w / ref_width
@@ -45,9 +43,9 @@ def process_screenshot(
     image_bytes: bytes,
     ref_width: int = 1280,
     ref_height: int = 720,
-    left: int = 490,
+    left: int = 550,
     top: int = 65,
-    right: int = 960,
+    right: int = 1100,
     bottom: int = 270,
 ) -> bytes:
     """
