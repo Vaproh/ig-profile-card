@@ -134,7 +134,7 @@ async def readiness():
 async def screenshot(
     request: Request,
     username: Annotated[str, Path(min_length=1, max_length=30)],
-    crop: bool = True,
+    crop: bool = False,
 ):
     if not InstagramUsernameValidator.validate(username):
         logger.warning(f"Invalid username attempted: {username}")
