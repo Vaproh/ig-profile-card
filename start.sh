@@ -57,7 +57,7 @@ log "Starting Camofox and API in tmux session '$SESSION'..."
 
 # Start API window
 tmux new-session -d -s "$SESSION" -n "api"
-tmux send-keys -t "$SESSION:api" "cd $SCRIPT_DIR && source $VENV_DIR/bin/activate && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080}" Enter
+tmux send-keys -t "$SESSION:api" "cd $SCRIPT_DIR && source $VENV_DIR/bin/activate && uvicorn main:app --host 0.0.0.0 --port $PORT" Enter
 
 # Build Camofox start command
 if [ "$PROXY_ENABLED" = "true" ] && [ -n "$PROXY_SERVER" ]; then
@@ -80,9 +80,9 @@ if tmux has-session -t "$SESSION" 2>/dev/null; then
     echo -e "${GREEN}  Service is running in tmux!${NC}"
     echo -e ""
     echo -e "  Session:    ${CYAN}$SESSION${NC}"
-    echo -e "  API:       ${CYAN}http://localhost:${PORT:-8080}${NC}"
-    echo -e "  Health:    ${CYAN}http://localhost:${PORT:-8080}/health${NC}"
-    echo -e "  Screenshot: ${CYAN}http://localhost:${PORT:-8080}/screenshot/{username}${NC}"
+    echo -e "  API:       ${CYAN}http://localhost:$PORT${NC}"
+    echo -e "  Health:    ${CYAN}http://localhost:$PORT/health${NC}"
+    echo -e "  Screenshot: ${CYAN}http://localhost:$PORT/screenshot/{username}${NC}"
     echo -e ""
     echo -e "  Attach:    ${CYAN}tmux attach -t $SESSION${NC}"
     echo -e "  API log:   ${CYAN}$API_LOG${NC}"
