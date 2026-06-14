@@ -28,12 +28,17 @@ pip install --quiet --upgrade pip
 pip install --quiet -r "$SCRIPT_DIR/requirements.txt"
 log "Pip packages installed"
 
+# ── npm ──
+if ! command -v npm &> /dev/null; then
+    warn "npm not found. Please install Node.js first."
+fi
+
 # ── Camofox ──
 if command -v camofox &> /dev/null || command -v camofox-browser &> /dev/null; then
     log "Camofox is already installed"
 else
-    log "Installing Camofox browser..."
-    npm install -g camofox-browser
+    log "Installing Camofox browser (requires sudo)..."
+    sudo npm install -g camofox-browser
     log "Camofox installed"
 fi
 
