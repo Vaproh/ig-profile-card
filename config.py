@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     camofox_user_id: str = "ig-screenshot-service"
     camofox_timeout: float = 15.0
     camofox_connect_timeout: float = 2.0
-    page_load_wait: float = 3.0
-    overlay_dismiss_wait: float = 1.0
+    page_load_wait: float = 5.0
+    overlay_dismiss_wait: float = 2.0
 
     host: str = "0.0.0.0"
     port: int = 8080

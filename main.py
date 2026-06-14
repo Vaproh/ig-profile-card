@@ -162,7 +162,7 @@ async def screenshot(
                 if overlay:
                     ref, label = overlay
                     logger.debug(f"Dismissing '{label}' overlay for: {username}")
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(2)
                     await client.click(tab_id, ref)
                     await asyncio.sleep(settings.overlay_dismiss_wait)
                     continue
