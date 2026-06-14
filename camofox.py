@@ -114,34 +114,22 @@ class CamofoxClient:
         except (httpx.ConnectError, httpx.TimeoutException):
             return False
 
-    @staticmethod
-    def has_close_button(snapshot: str) -> bool:
-        return 'button "Close" [e1]' in snapshot
+    OVERLAY_PATTERNS = [
+        (r'button "Close" \[(e\d+)\]', "Close"),
+        (r'button "Accept all" \[(e\d+)\]', "Accept all"),
+        (r'button "Accept All" \[(e\d+)\]', "Accept All"),
+        (r'button "Accept cookies" \[(e\d+)\]', "Accept cookies"),
+        (r'button "Deny all" \[(e\d+)\]', "Deny all"),
+        (r'button "Rejeter tout" \[(e\d+)\]', "Reject all"),
+        (r'button "Not now" \[(e\d+)\]', "Not now"),
+    ]
 
-    @staticmethod
-    def has_cookies_consent(snapshot: str) -> bool:
-        cookies_patterns = [
-            "button \"Accept all\"",
-            "button \"Accept cookies\"",
-            "button \"Accept All\"",
-            "button \"Rejeter tout\"",
-            "button \"Deny all\"",
-        ]
-        return any(pattern in snapshot for pattern in cookies_patterns)
-
-    def find_cookies_button_ref(self, snapshot: str) -> Optional[str]:
-        import re
-        patterns = [
-            r'button "Accept all" \[(e\d+)\]',
-            r'button "Accept cookies" \[(e\d+)\]',
-            r'button "Accept All" \[(e\d+)\]',
-            r'button "Deny all" \[(e\d+)\]',
-            r'button "Rejeter tout" \[(e\d+)\]',
-        ]
-        for pattern in patterns:
+    def detect_overlay(self, snapshot: str) -> Optional[tuple[str, str]]:
+        for pattern, label in self.OVERLAY_PATTERNS:
+            import re
             match = re.search(pattern, snapshot)
             if match:
-                return match.group(1)
+                return (match.group(1), label)
         return None
 
     @staticmethod
