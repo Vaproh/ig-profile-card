@@ -147,6 +147,9 @@ class CamofoxClient:
         unavailable_phrases = [
             "Sorry, this page isn't available",
             "Profile isn't available",
+            "This page isn't available",
+            "Page Not Found",
+            "no longer with us",
         ]
         return any(phrase in snapshot for phrase in unavailable_phrases)
 
