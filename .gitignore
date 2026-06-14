@@ -3,7 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 .env
-.env.example
 .camofox_dir
 *.log
 .pytest_cache/
