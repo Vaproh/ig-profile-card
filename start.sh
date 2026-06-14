@@ -43,7 +43,7 @@ tmux new-session -d -s "$SESSION" -n "api" "
 # Create Camofox window
 tmux new-window -t "$SESSION" -n "camofox" "
     echo 'Starting Camofox browser...'
-    camofox --port 9377 2>&1 | tee -a $CAMOFOX_LOG
+    camofox-browser --port 9377 2>&1 | tee -a $CAMOFOX_LOG
 "
 
 sleep 1

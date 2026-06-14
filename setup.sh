@@ -29,12 +29,12 @@ pip install --quiet -r "$SCRIPT_DIR/requirements.txt"
 log "Pip packages installed"
 
 # ── Camofox ──
-if command -v camofox &> /dev/null; then
+if command -v camofox &> /dev/null || command -v camofox-browser &> /dev/null; then
     log "Camofox is already installed"
 else
-    warn "Camofox not found in PATH"
-    warn "Please install Camofox from https://github.com/nowsecure/camofox"
-    warn "Or run: brew install camofox (macOS)"
+    log "Installing Camofox browser..."
+    npm install -g camofox-browser
+    log "Camofox installed"
 fi
 
 # ── Data directories ──
