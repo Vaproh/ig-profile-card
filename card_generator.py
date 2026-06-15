@@ -44,6 +44,13 @@ def get_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFon
         return ImageFont.load_default()
 
 
+def get_emoji_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    try:
+        return ImageFont.truetype("/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf", size)
+    except Exception:
+        return get_font(size)
+
+
 def wrap_text(text: str, font: ImageFont.FreeTypeFont | ImageFont.ImageFont, max_width: float) -> list:
     dummy_draw = ImageDraw.Draw(Image.new("RGBA", (1, 1)))
     words = text.split()
@@ -103,7 +110,7 @@ def generate_card(data: dict) -> bytes:
 
     if data.get("is_verified"):
         uname_w = draw.textlength(f"@{username}", font=username_font)
-        draw.text((text_x + uname_w + 8, y + 2), "✓", font=get_font(22, bold=True), fill=VERIFIED_BLUE)
+        draw.text((text_x + uname_w + 8, y + 2), "[V]", font=get_font(22, bold=True), fill=VERIFIED_BLUE)
 
     y = PADDING + PFP_SIZE - 30
     full_name = data.get("full_name", "")
@@ -141,12 +148,12 @@ def generate_card(data: dict) -> bytes:
     if external_url:
         url_y = divider_y + 25 + bio_height + 15
         if url_y < H - PADDING - 30:
-            draw.text((text_x, url_y), f"🔗 {external_url[:55]}", font=get_font(14), fill=ACCENT)
+            draw.text((text_x, url_y), f"> {external_url[:55]}", font=get_font(14), fill=ACCENT)
 
     if data.get("is_private"):
         lock_y = H - PADDING - 40
         draw.rounded_rectangle([(text_x, lock_y), (text_x + 160, lock_y + 36)], radius=10, fill=(50, 50, 65, 255))
-        draw.text((text_x + 18, lock_y + 8), "🔒 Private Account", font=get_font(15, bold=True), fill=TEXT_GRAY)
+        draw.text((text_x + 18, lock_y + 8), "[Private Account]", font=get_font(15, bold=True), fill=TEXT_GRAY)
 
     output = io.BytesIO()
     img.save(output, format="PNG")
