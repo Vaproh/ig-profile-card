@@ -18,8 +18,10 @@ from slowapi.util import get_remote_address
 from tenacity import RetryError
 
 from camofox import CamofoxClient, managed_tab
+from card_generator import generate_card
 from config import get_settings
 from cropper import process_screenshot
+from profile_fetcher import fetch_profile
 
 settings = get_settings()
 
@@ -208,6 +210,49 @@ async def screenshot(
     except httpx.TimeoutException:
         logger.error(f"Timeout capturing {username}")
         raise HTTPException(status_code=504, detail="Page load timeout")
+
+
+@app.get(
+    "/profile/{username}",
+    tags=["profile"],
+    responses={
+        200: {"content": {"image/png": {}}, "description": "Profile card image"},
+        400: {"description": "Invalid username"},
+        404: {"description": "Profile not found"},
+        429: {"description": "Rate limit exceeded"},
+        500: {"description": "Internal error"},
+    },
+)
+@limiter.limit(f"{settings.rate_limit_per_minute}/minute")
+async def profile_card(request: Request, username: Annotated[str, Path(min_length=1, max_length=30)]):
+    if not InstagramUsernameValidator.validate(username):
+        raise HTTPException(status_code=400, detail="Invalid username")
+
+    logger.info(f"Fetching profile data for: {username}")
+
+    proxy_url = None
+    if settings.proxy_enabled and settings.proxy_server:
+        proxy_url = f"http://{settings.proxy_username}:{settings.proxy_password}@{settings.proxy_server}"
+
+    data = fetch_profile(username, proxy_url)
+
+    if data.get("status") == "missing":
+        raise HTTPException(status_code=404, detail="profile isn't available")
+
+    if data.get("status") == "rate_limited":
+        raise HTTPException(status_code=429, detail="Rate limited by Instagram")
+
+    if data.get("status") == "error":
+        logger.error(f"Error fetching {username}: {data.get('error')}")
+        raise HTTPException(status_code=500, detail="Failed to fetch profile")
+
+    try:
+        card_bytes = generate_card(data)
+        logger.info(f"Profile card generated for: {username} ({len(card_bytes)} bytes)")
+        return Response(content=card_bytes, media_type="image/png")
+    except Exception as e:
+        logger.error(f"Error generating card for {username}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate card")
 
 
 if __name__ == "__main__":

@@ -6,3 +6,4 @@ python-dotenv>=1.0.0
 pydantic-settings>=2.0.0
 slowapi>=0.1.9
 tenacity>=8.2.0
+curl-cffi>=0.7.0
