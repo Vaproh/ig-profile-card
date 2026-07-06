@@ -15,7 +15,7 @@ A high-performance FastAPI service that generates aesthetic Instagram profile ca
 ```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────────┐
 │   Client    │────▶│  FastAPI     │────▶│  Instagram API  │
-│  (curl)    │     │  (Port 8080) │     │  (i.instagram)  │
+│  (curl)     │     │  (Port 8080) │     │  (i.instagram)  │
 └─────────────┘     └──────────────┘     └─────────────────┘
                           │
                           ▼
