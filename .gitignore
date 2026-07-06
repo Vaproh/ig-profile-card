@@ -16,3 +16,5 @@ build/
 *.png
 !README/
 data/
+.ruff_cache/
+.uv/

@@ -5,6 +5,14 @@ echo ""
 echo "[*] Instagram Profile Card Service - Setup"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+# Check if uv is installed
+if ! command -v uv &> /dev/null; then
+    echo "[!] uv not found. Installing..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    export PATH="$HOME/.local/bin:$PATH"
+fi
+echo "[+] uv installed ✓"
+
 # Check Python version
 PYTHON_VERSION=$(python3 --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2)
 REQUIRED_VERSION="3.10"
@@ -15,23 +23,10 @@ if [ "$(printf '%s\n' "$REQUIRED_VERSION" "$PYTHON_VERSION" | sort -V | head -n1
 fi
 echo "[+] Python version: $PYTHON_VERSION ✓"
 
-# Create virtual environment
-if [ ! -d "venv" ] && [ ! -d ".venv" ]; then
-    echo "[*] Creating virtual environment..."
-    python3 -m venv .venv
-    echo "[+] Virtual environment created ✓"
-else
-    echo "[+] Virtual environment exists ✓"
-fi
-
-# Activate virtual environment
-echo "[*] Activating virtual environment..."
-source .venv/bin/activate
-
-# Install dependencies
-echo "[*] Installing dependencies..."
-pip install -r requirements.txt --quiet
-echo "[+] Dependencies installed ✓"
+# Sync dependencies with uv
+echo "[*] Syncing dependencies with uv..."
+uv sync
+echo "[+] Dependencies synced ✓"
 
 # Create .env from example if not exists
 if [ ! -f .env ]; then

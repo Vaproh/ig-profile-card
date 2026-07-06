@@ -51,7 +51,9 @@ def get_emoji_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
         return get_font(size)
 
 
-def wrap_text(text: str, font: ImageFont.FreeTypeFont | ImageFont.ImageFont, max_width: float) -> list:
+def wrap_text(
+    text: str, font: ImageFont.FreeTypeFont | ImageFont.ImageFont, max_width: float
+) -> list:
     dummy_draw = ImageDraw.Draw(Image.new("RGBA", (1, 1)))
     words = text.split()
     lines = []
@@ -110,7 +112,9 @@ def generate_card(data: dict) -> bytes:
 
     if data.get("is_verified"):
         uname_w = draw.textlength(f"@{username}", font=username_font)
-        draw.text((text_x + uname_w + 8, y + 2), "[V]", font=get_font(22, bold=True), fill=VERIFIED_BLUE)
+        draw.text(
+            (text_x + uname_w + 8, y + 2), "[V]", font=get_font(22, bold=True), fill=VERIFIED_BLUE
+        )
 
     y = PADDING + PFP_SIZE - 30
     full_name = data.get("full_name", "")
@@ -128,7 +132,7 @@ def generate_card(data: dict) -> bytes:
     stats = [
         ("Posts", format_count(posts)),
         ("Followers", format_count(followers)),
-        ("Following", format_count(following))
+        ("Following", format_count(following)),
     ]
 
     for i, (label, value) in enumerate(stats):
@@ -152,8 +156,15 @@ def generate_card(data: dict) -> bytes:
 
     if data.get("is_private"):
         lock_y = H - PADDING - 40
-        draw.rounded_rectangle([(text_x, lock_y), (text_x + 160, lock_y + 36)], radius=10, fill=(50, 50, 65, 255))
-        draw.text((text_x + 18, lock_y + 8), "[Private Account]", font=get_font(15, bold=True), fill=TEXT_GRAY)
+        draw.rounded_rectangle(
+            [(text_x, lock_y), (text_x + 160, lock_y + 36)], radius=10, fill=(50, 50, 65, 255)
+        )
+        draw.text(
+            (text_x + 18, lock_y + 8),
+            "[Private Account]",
+            font=get_font(15, bold=True),
+            fill=TEXT_GRAY,
+        )
 
     output = io.BytesIO()
     img.save(output, format="PNG")

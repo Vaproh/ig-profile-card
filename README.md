@@ -1,16 +1,20 @@
-# Instagram Profile Card Service
+# 🌐 Instagram Profile Card Service
 
 A high-performance FastAPI service that generates aesthetic Instagram profile cards on-the-fly using Instagram's web API with curl_cffi for reliable fetching.
 
-## Features
+![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-green.svg)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-- **Dynamic Profile Cards** - Automatically sized based on profile data
-- **Anti-Detection** - Uses curl_cffi with Chrome impersonation + rotating Android user agents
-- **Proxy Support** - Backconnect proxy integration for IP rotation
-- **Rate Limiting** - Built-in request throttling
-- **Error Handling** - Graceful handling of private accounts, missing profiles, and rate limits
+## ✨ Features
 
-## Architecture
+- **Dynamic Profile Cards** 📸 - Automatically sized based on profile data
+- **Anti-Detection** 🛡️ - Uses curl_cffi with Chrome impersonation + rotating Android user agents
+- **Proxy Support** 🔄 - Backconnect proxy integration for IP rotation
+- **Rate Limiting** ⚡ - Built-in request throttling
+- **Error Handling** ✅ - Graceful handling of private accounts, missing profiles, and rate limits
+
+## 🏗️ Architecture
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────────┐
@@ -25,28 +29,31 @@ A high-performance FastAPI service that generates aesthetic Instagram profile ca
                    └──────────────┘
 ```
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- **FastAPI** - Async web framework
-- **curl_cffi** - HTTP client with TLS fingerprinting
-- **Pillow** - Image generation
-- **pydantic-settings** - Configuration management
+- **FastAPI** ⚡ - Async web framework
+- **curl_cffi** 🔗 - HTTP client with TLS fingerprinting
+- **Pillow** 🖼️ - Image generation
+- **pydantic-settings** ⚙️ - Configuration management
 
-## Setup
+## 🚀 Setup
 
 ```bash
 # Clone and enter directory
 cd ig-screenshot
 
-# Install dependencies
+# Install dependencies (requires uv)
 ./setup.sh
+
+# Or use just
+just install
 
 # Configure environment
 cp .env.example .env
 # Edit .env with your proxy credentials
 ```
 
-## Configuration
+## ⚙️ Configuration
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -60,16 +67,16 @@ cp .env.example .env
 | `PROXY_USERNAME` | - | Proxy username |
 | `PROXY_PASSWORD` | - | Proxy password |
 
-## Usage
+## 📖 Usage
 
-### Start/Stop
+### 🚦 Start/Stop
 
 ```bash
 ./start.sh   # Start service in tmux session 'ig-profile'
 ./stop.sh    # Stop service and kill tmux session
 ```
 
-### API Endpoints
+### 📡 API Endpoints
 
 #### `GET /health`
 
@@ -110,18 +117,18 @@ curl http://localhost:8080/profile/akiraa.init -o card.png
 ```
 
 **Card Contents:**
-- Profile picture (circular)
-- Username (@handle)
-- Full name
-- Verification badge [V] if verified
-- Posts / Followers / Following counts
-- Bio (auto-wrapped, max 5 lines)
-- External URL (if present)
-- [Private Account] badge if private
+- Profile picture (circular) 📷
+- Username (@handle) 👤
+- Full name 📝
+- Verification badge [V] if verified ✨
+- Posts / Followers / Following counts 📊
+- Bio (auto-wrapped, max 5 lines) 💬
+- External URL (if present) 🔗
+- [Private Account] badge if private 🔒
 
 ---
 
-## Error Handling
+## ❗ Error Handling
 
 The service handles various error cases:
 
@@ -133,18 +140,30 @@ The service handles various error cases:
 | Proxy connection failed | `500` | No card generated |
 | Invalid username | `400` | No card generated |
 
-## Development
+## 🛠️ Development
 
 ```bash
 # Run without tmux
+just run
+
+# Or manually
 source .venv/bin/activate
 uvicorn main:app --host 0.0.0.0 --port 8080 --reload
 
-# Run tests (when available)
-pytest
+# Format code
+just fmt
+
+# Lint code
+just lint
+
+# Run all checks
+just check
+
+# Run tests
+just test
 ```
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 ig-screenshot/
@@ -152,6 +171,8 @@ ig-screenshot/
 ├── config.py            # Pydantic settings
 ├── profile_fetcher.py   # Instagram API client
 ├── card_generator.py    # PIL image generator
+├── pyproject.toml       # Python project metadata
+├── justfile             # Command runner
 ├── requirements.txt     # Python dependencies
 ├── .env                 # Environment configuration (gitignored)
 ├── .env.example         # Configuration template
@@ -161,6 +182,6 @@ ig-screenshot/
 └── README.md            # This file
 ```
 
-## License
+## 📜 License
 
 MIT

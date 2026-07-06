@@ -1,18 +1,18 @@
 import logging
-import os
 import re
 import uuid
 from contextlib import asynccontextmanager
 from typing import Annotated
 
 from dotenv import load_dotenv
-load_dotenv()
 
-from fastapi import FastAPI, HTTPException, Response, Path
+load_dotenv()  # noqa: E402
 
-from card_generator import generate_card
-from config import get_settings
-from profile_fetcher import fetch_profile
+from fastapi import FastAPI, HTTPException, Response, Path  # noqa: E402
+
+from card_generator import generate_card  # noqa: E402
+from config import get_settings  # noqa: E402
+from profile_fetcher import fetch_profile  # noqa: E402
 
 settings = get_settings()
 
@@ -87,7 +87,9 @@ async def profile_card(username: Annotated[str, Path(min_length=1, max_length=30
 
     try:
         card_bytes = generate_card(data)
-        logger.info(f"[{request_id}] Profile card generated for: {username} ({len(card_bytes)} bytes)")
+        logger.info(
+            f"[{request_id}] Profile card generated for: {username} ({len(card_bytes)} bytes)"
+        )
         return Response(content=card_bytes, media_type="image/png")
     except Exception as e:
         logger.error(f"[{request_id}] Error generating card for {username}: {e}")

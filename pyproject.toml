@@ -1,0 +1,32 @@
+[project]
+name = "ig-screenshot"
+version = "0.1.0"
+description = "Instagram Profile Card Service"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "Pillow>=10.3.0",
+    "python-dotenv>=1.0.0",
+    "pydantic-settings>=2.0.0",
+    "curl-cffi>=0.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4.0",
+    "pytest>=8.0.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
